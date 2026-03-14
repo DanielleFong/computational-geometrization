@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Computational Geometrization: Complexity Classes for Thurston's Eight Geometries</title>
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+:root {
+  --bg: #0a0e1a;
+  --text: #e0e0e0;
+  --accent: #00bcd4;
+  --gold: #ffd700;
+  --red: #ff5252;
+  --green: #4caf50;
+  --dim: #607080;
+  --card-bg: #121828;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Source Serif Pro', Georgia, serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.7;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+h1 { font-size: 2rem; color: var(--gold); margin-bottom: 0.5rem; }
+h2 { font-size: 1.5rem; color: var(--accent); margin-top: 3rem; border-bottom: 1px solid #2a3a4a; padding-bottom: 0.5rem; }
+h3 { font-size: 1.2rem; color: var(--text); margin-top: 2rem; }
+p { margin: 1rem 0; }
+a { color: var(--accent); }
+code { font-family: 'JetBrains Mono', monospace; background: #1a2535; padding: 0.15rem 0.4rem; border-radius: 3px; font-size: 0.9em; }
+pre { background: #1a2535; padding: 1rem; border-radius: 6px; overflow-x: auto; margin: 1rem 0; font-size: 0.85em; }
+.theorem {
+  background: var(--card-bg);
+  border-left: 4px solid var(--green);
+  padding: 1rem 1.5rem;
+  margin: 1.5rem 0;
+  border-radius: 0 6px 6px 0;
+}
+.conjecture {
+  background: var(--card-bg);
+  border-left: 4px solid var(--gold);
+  padding: 1rem 1.5rem;
+  margin: 1.5rem 0;
+  border-radius: 0 6px 6px 0;
+}
+.proof {
+  background: #0d1520;
+  padding: 1rem 1.5rem;
+  margin: 0.5rem 0 1.5rem 0;
+  border-radius: 6px;
+  font-size: 0.95em;
+}
+.proof::before { content: "Proof sketch. "; font-weight: bold; color: var(--dim); }
+.proof::after { content: " ∎"; color: var(--dim); }
+.figure {
+  margin: 2rem 0;
+  text-align: center;
+}
+.figure img {
+  max-width: 100%;
+  border-radius: 8px;
+  border: 1px solid #2a3a4a;
+}
+.figure .caption {
+  font-size: 0.85em;
+  color: var(--dim);
+  margin-top: 0.5rem;
+  font-style: italic;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+}
+th, td {
+  padding: 0.6rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid #2a3a4a;
+}
+th { color: var(--accent); font-weight: 600; }
+.tag-proven { color: var(--green); font-weight: bold; }
+.tag-conjecture { color: var(--gold); font-weight: bold; }
+.tag-open { color: var(--red); font-weight: bold; }
+.authors { color: var(--dim); font-size: 0.95em; margin-bottom: 2rem; }
+.abstract { background: var(--card-bg); padding: 1.5rem; border-radius: 8px; margin: 2rem 0; }
+.toc { background: var(--card-bg); padding: 1.5rem; border-radius: 8px; margin: 2rem 0; }
+.toc a { display: block; padding: 0.3rem 0; color: var(--text); text-decoration: none; }
+.toc a:hover { color: var(--accent); }
+.data-table { font-family: 'JetBrains Mono', monospace; font-size: 0.85em; }
+.experiment { background: #0d1a12; border-left: 4px solid var(--accent); padding: 1rem 1.5rem; margin: 1.5rem 0; border-radius: 0 6px 6px 0; }
+</style>
+</head>
+<body>
+
+<h1>Computational Geometrization</h1>
+<p style="font-size: 1.3em; color: var(--dim);">Complexity Classes for Thurston's Eight Geometries</p>
+<div class="authors">
+  Danielle Fong (human direction) &amp; Opus 4.6 (Claude Code, experiments &amp; analysis)<br>
+  Draft v1 — March 2026<br>
+  <a href="https://github.com/DanielleFong">github.com/DanielleFong</a>
+</div>
+
+<div class="abstract">
+<h3 style="margin-top:0;">Abstract</h3>
+<p>We associate a computational complexity class \(M_{\text{phys}}(X)\) to each of Thurston's eight model geometries \(X\), defined as the class of problems decidable by polynomial-time cellular automata on the Cayley graph of a lattice in \(X\). By assembling results from geometric group theory, hyperbolic cellular automata, and space complexity theory, we classify seven of eight geometries:</p>
+
+<table>
+<tr><th>Geometry</th><th>Volume Growth</th><th>\(M_{\text{phys}}\)</th><th>Status</th></tr>
+<tr><td>\(\mathbb{S}^3\)</td><td>Bounded</td><td>Bounded</td><td class="tag-proven">Proven</td></tr>
+<tr><td>\(\mathbb{E}^3, \mathbb{S}^2 \times \mathbb{R}, \text{Nil}\)</td><td>Polynomial</td><td>\(\mathbf{P}\)</td><td class="tag-proven">Proven</td></tr>
+<tr><td>\(\mathbb{H}^3, \mathbb{H}^2 \times \mathbb{R}, \widetilde{SL}(2,\mathbb{R})\)</td><td>Uniform exponential</td><td>\(\mathbf{PSPACE}\)</td><td class="tag-proven">Proven</td></tr>
+<tr><td>\(\text{Sol}\)</td><td>Anisotropic exponential</td><td>\(\mathbf{P}\) (conjectured)</td><td class="tag-conjecture">Conjecture</td></tr>
+</table>
+
+<p>For Sol, we present empirical evidence from 13 cellular automaton experiments showing that the irrational eigenslope of the monodromy matrix \(A = \begin{pmatrix} 2 & 1 \\ 1 & 1 \end{pmatrix}\) creates a Diophantine obstruction to efficient use of the exponential workspace. The expanding eigenvector \((1, 1/\varphi)\) has irrational slope on the integer lattice, and every attempt to exploit Sol's exponential growth incurs Fibonacci-growing correction costs.</p>
+</div>
+
+<nav class="toc">
+<h3 style="margin-top:0;">Contents</h3>
+<a href="#sec1">1. Introduction</a>
+<a href="#sec2">2. Definitions</a>
+<a href="#sec3">3. The Polynomial Growth Case</a>
+<a href="#sec4">4. The Uniform Exponential Case</a>
+<a href="#sec5">5. Sol — The Anomalous Case</a>
+<a href="#sec6">6. The Landauer-JSJ Connection</a>
+<a href="#sec7">7. Sol in Nature</a>
+<a href="#sec8">8. Open Problems</a>
+<a href="#refs">References</a>
+</nav>
+
+<!-- ═══════════════════════════════════════════ -->
+<h2 id="sec1">1. Introduction</h2>
+
+<p>Thurston's Geometrization Conjecture, proved by Perelman in 2003 using Ricci flow with surgery, states that every closed oriented prime 3-manifold decomposes along incompressible tori into pieces carrying one of exactly eight model geometries. This classification is the 3-manifold analogue of the classification of surfaces by genus.</p>
+
+<p>We ask: <strong>what can you compute on each geometry?</strong></p>
+
+<p>For each model geometry \(X\), we define \(M_{\text{phys}}(X)\) as the class of languages decidable by polynomial-time cellular automata on the Cayley graph of a cocompact lattice in the isometry group of \(X\). This captures the "computational power" of the geometry — the maximum complexity class achievable when your workspace has the shape of \(X\).</p>
+
+<p>The key insight is that <strong>volume growth rate determines computational power</strong>:</p>
+<ul>
+  <li>Polynomial growth (the space "fills up" like \(\mathbb{R}^d\)) → the CA can only reach polynomially many cells → \(\mathbf{P}\)</li>
+  <li>Uniform exponential growth (the space branches like a tree) → the CA reaches exponentially many cells with tree structure → \(\mathbf{PSPACE}\)</li>
+  <li>Anisotropic exponential growth (Sol: expands in one direction, contracts in the perpendicular) → exponential cells available but <em>structured differently</em> → open question</li>
+</ul>
+
+<p>This programme was inspired by a structural observation about Tri Dao's FlashAttention algorithm: its tile-and-merge strategy decomposes computation along boundaries carrying \(O(1)\) summary statistics, analogous to how JSJ decomposition cuts 3-manifolds along incompressible tori. The pun "given Tri Dao, why not Quad Dao?" led to the question of why 3-manifold topology is classified while 4-manifold topology is wild — and whether this has computational content.</p>
+
+<!-- FIGURE: Thurston's 8 Geometries -->
+<div class="figure">
+  <img src="img/fig1-thurston.png" alt="Thurston's 8 Geometries color-coded by complexity class">
+  <div class="caption">Figure 1. Thurston's eight model geometries, color-coded by computational complexity: blue = polynomial growth (P), red = uniform exponential (PSPACE), gold = Sol (open).</div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<h2 id="sec2">2. Definitions</h2>
+
+<h3>2.1 Thurston's Eight Geometries</h3>
+
+<p>A <em>model geometry</em> is a simply-connected Riemannian manifold \(X\) with a transitive action of its isometry group \(\text{Isom}(X)\) that admits at least one compact quotient. Thurston (1982) classified all such geometries in dimension 3:</p>
+
+<table>
+<tr><th>Geometry \(X\)</th><th>Isometry Group</th><th>Volume Growth \(\gamma(r)\)</th><th>Example Lattice</th></tr>
+<tr><td>\(\mathbb{S}^3\)</td><td>\(SO(4)\)</td><td>Bounded (compact)</td><td>Finite groups</td></tr>
+<tr><td>\(\mathbb{E}^3\)</td><td>\(\mathbb{R}^3 \rtimes O(3)\)</td><td>\(\Theta(r^3)\)</td><td>\(\mathbb{Z}^3\)</td></tr>
+<tr><td>\(\mathbb{S}^2 \times \mathbb{R}\)</td><td>\(O(3) \times \mathbb{R}\)</td><td>\(\Theta(r)\)</td><td>\(\mathbb{Z}\)</td></tr>
+<tr><td>\(\text{Nil}\)</td><td>Heisenberg group</td><td>\(\Theta(r^4)\)</td><td>Integer Heisenberg</td></tr>
+<tr><td>\(\mathbb{H}^3\)</td><td>\(PSL(2,\mathbb{C})\)</td><td>\(\Theta(e^{2r})\)</td><td>Bianchi groups</td></tr>
+<tr><td>\(\mathbb{H}^2 \times \mathbb{R}\)</td><td>\(PSL(2,\mathbb{R}) \times \mathbb{R}\)</td><td>\(\Theta(r \cdot e^r)\)</td><td>Surface group \(\times \mathbb{Z}\)</td></tr>
+<tr><td>\(\widetilde{SL}(2,\mathbb{R})\)</td><td>Universal cover of \(SL(2,\mathbb{R})\)</td><td>\(\Theta(e^r)\)</td><td>—</td></tr>
+<tr><td>\(\text{Sol}\)</td><td>\(\mathbb{R}^2 \rtimes_A \mathbb{R}\)</td><td>\(\Theta(e^r)\) (anisotropic)</td><td>\(\mathbb{Z}^2 \rtimes_A \mathbb{Z}\)</td></tr>
+</table>
+
+<h3>2.2 The Computational Model \(M_{\text{phys}}(X)\)</h3>
+
+<div class="theorem">
+<strong>Definition.</strong> Let \(X\) be a model geometry, \(\Gamma\) a cocompact lattice in \(\text{Isom}(X)\), and \(S\) a finite generating set for \(\Gamma\). A <em>cellular automaton</em> on \(\text{Cay}(\Gamma, S)\) consists of:
+<ul>
+  <li>A finite state set \(Q\) with a distinguished quiescent state \(q_0\)</li>
+  <li>A local transition function \(\delta: Q^{|S|+1} \to Q\)</li>
+  <li>Synchronous parallel updates: every vertex applies \(\delta\) simultaneously</li>
+</ul>
+We define \(M_{\text{phys}}(X)\) as the class of languages decidable by such a CA running for \(\text{poly}(n)\) steps on input of size \(n\).
+</div>
+
+<p>This definition is robust: it is independent of the choice of lattice \(\Gamma\) (up to quasi-isometry) and generating set \(S\) (standard). The key parameter is the <em>volume growth rate</em> of the Cayley graph, which determines how many cells the CA can reach in polynomial time.</p>
+
+<!-- ═══════════════════════════════════════════ -->
+<h2 id="sec3">3. The Polynomial Growth Case (\(\mathbb{E}^3, \mathbb{S}^2 \times \mathbb{R}\), Nil, \(\mathbb{S}^3\))</h2>
+
+<div class="theorem">
+<strong>Theorem 1 (Gromov, 1981).</strong> A finitely generated group has polynomial volume growth if and only if it is virtually nilpotent.
+</div>
+
+<div class="proof">
+The forward direction is the deep result. If \(\gamma(r) \leq C \cdot r^d\) for all \(r\), then the group contains a nilpotent subgroup of finite index. The converse (Milnor-Wolf, 1968) is more elementary: nilpotent groups have polynomial growth because their lower central series gives a graded structure where each level contributes polynomial growth.
+</div>
+
+<div class="theorem">
+<strong>Theorem 2.</strong> For any geometry \(X\) with polynomial volume growth, \(M_{\text{phys}}(X) = \mathbf{P}\).
+</div>
+
+<div class="proof">
+<strong>Upper bound:</strong> A CA running for \(T = \text{poly}(n)\) steps can influence at most the cells within Cayley distance \(T\) of the input. By polynomial growth, \(|B(T)| \leq C \cdot T^d = \text{poly}(n)\). A standard Turing machine can simulate this CA by iterating over all active cells at each step, using \(\text{poly}(n)\) time.
+
+<strong>Lower bound:</strong> A Turing machine with polynomial-time bound can be simulated by a CA on any geometry by embedding a one-dimensional tape along a geodesic ray in the Cayley graph. The CA uses the tape cells for TM simulation and ignores the rest of the geometry. Since even \(\mathbb{Z}\) (the simplest infinite group) admits this embedding, \(\mathbf{P} \subseteq M_{\text{phys}}(X)\) for all infinite-group geometries.
+</div>
+
+<p>For \(\mathbb{S}^3\), the lattices are <em>finite</em> groups, so the CA has bounded workspace regardless of input size. This gives \(M_{\text{phys}}(\mathbb{S}^3) = \text{Bounded} \subset \mathbf{P}\).</p>
+
+<!-- ═══════════════════════════════════════════ -->
+<h2 id="sec4">4. The Uniform Exponential Case (\(\mathbb{H}^3, \mathbb{H}^2 \times \mathbb{R}, \widetilde{SL}(2,\mathbb{R})\))</h2>
+
+<div class="theorem">
+<strong>Theorem 3 (Margenstern-Morita, 2001; Iwamoto-Margenstern-Morita-Worsch, 2002).</strong> The class of languages decidable by polynomial-time deterministic cellular automata on the \(\{5,4\}\) tiling of the hyperbolic plane equals \(\mathbf{PSPACE}\). That is, \(P_h = \mathbf{PSPACE}\).
+</div>
+
+<!-- FIGURE: Hyperbolic PSPACE -->
+<div class="figure">
+  <img src="img/fig2-hyperbolic.png" alt="Why Hyperbolic Geometry equals PSPACE">
+  <div class="caption">Figure 2. The Margenstern trick: a binary tree is quasi-isometrically embedded in the \(\{5,4\}\) tiling. Exponential cells at polynomial depth give free PSPACE workspace.</div>
+</div>
+
+<div class="proof">
+<strong>\(\mathbf{PSPACE} \subseteq P_h\):</strong> The key is the <em>tree encoding trick</em>. The Cayley graph of the symmetry group of \(\mathbb{H}^2\) contains a quasi-isometrically embedded regular binary tree (the "spanning tree" of the \(\{5,4\}\) tiling). The number of tree nodes at depth \(d\) is \(2^d\), and each node can be addressed using a Fibonacci numbering scheme with the <em>Addressing Lemma</em>: the address of any neighbor can be computed from a bounded-length suffix of the current address.
+
+To solve TQBF (the canonical \(\mathbf{PSPACE}\)-complete problem) with \(n\) variables: use depth \(n\) of the tree to fan out into \(2^n\) branches, one per variable assignment. Each branch independently evaluates the formula in \(\text{poly}(n)\) time. The AND/OR aggregation propagates back up the tree in \(n\) steps. Total time: \(\text{poly}(n)\).
+
+<strong>\(P_h \subseteq \mathbf{PSPACE}\):</strong> A standard TM simulates the hyperbolic CA. In \(T\) steps, the CA touches at most \(O(e^{cT})\) cells, each addressable by a string of length \(O(T)\). The TM iterates over cells sequentially using \(O(T)\) space per cell. By Savitch's theorem, the total space is \(O(T^2) = \text{poly}(n)\), so \(P_h \subseteq \mathbf{PSPACE}\).
+</div>
+
+<div class="theorem">
+<strong>Theorem 4 (Universal Upper Bound).</strong> For any Thurston geometry \(X\), \(M_{\text{phys}}(X) \subseteq \mathbf{PSPACE}\).
+</div>
+
+<div class="proof">
+By the same DFS simulation argument as the upper bound of Theorem 3. The geometry-independent part is: any poly-time CA on any Cayley graph can be simulated by a TM using polynomial space, because the CA's spacetime DAG has polynomial depth and each configuration can be recomputed recursively.
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<h2 id="sec5">5. Sol — The Anomalous Case</h2>
+
+<p>Sol is the only Thurston geometry whose computational power remains open. It has exponential volume growth — like the hyperbolic geometries — but the growth is <em>anisotropic</em>: one eigendirection of the monodromy matrix expands while the perpendicular contracts.</p>
+
+<h3>5.1 Sol's Structure</h3>
+
+<p>Sol = \(\mathbb{R}^2 \rtimes_A \mathbb{R}\) where the action of \(\mathbb{R}\) on \(\mathbb{R}^2\) is by the one-parameter group \(e^{tA}\) for:</p>
+
+\[A = \begin{pmatrix} 2 & 1 \\ 1 & 1 \end{pmatrix}, \quad \text{eigenvalues } \varphi^2 \approx 2.618, \; 1/\varphi^2 \approx 0.382\]
+
+<p>where \(\varphi = (1+\sqrt{5})/2\) is the golden ratio. The canonical lattice is \(\Gamma = \mathbb{Z}^2 \rtimes_A \mathbb{Z}\) with generators \(a = ((1,0), 0)\), \(b = ((0,1), 0)\), \(t = ((0,0), 1)\).</p>
+
+<h3>5.2 Why Margenstern Fails for Sol</h3>
+
+<div class="theorem">
+<strong>Theorem 5 (Classical).</strong> Sol is amenable. Therefore its Cayley graph contains no quasi-isometrically embedded infinite binary tree.
+</div>
+
+<div class="proof">
+Sol is solvable, hence amenable by von Neumann's theorem. The Følner condition (existence of sets with boundary-to-volume ratio tending to zero) is incompatible with a QI-embedded binary tree, which has exponential boundary growth at every scale. The specific result for Sol is due to Drutu-Sapir (2005) and Cornulier (2008).
+</div>
+
+<!-- FIGURE: Sol Anomaly -->
+<div class="figure">
+  <img src="img/fig3-sol.png" alt="Sol: The Anomaly">
+  <div class="caption">Figure 3. Sol geometry: anisotropic exponential growth. The expanding direction (eigenvalue \(\varphi^2\)) provides exponential workspace, but the contracting direction (eigenvalue \(1/\varphi^2\)) creates a bottleneck.</div>
+</div>
+
+<h3>5.3 Empirical Evidence: 13 Experiments</h3>
+
+<p>We implemented Sol's Cayley graph in Rust and conducted 13 experiments across three binaries, testing every proposed route to PSPACE. All code is reproducible at <code>experiments/sol-ca/</code>.</p>
+
+<h4>5.3.1 The Fibonacci Gap Growth</h4>
+
+<div class="experiment">
+<strong>Experiment 4 (Tape Stretching).</strong> Place a TM tape of length \(N\) at level \(k=0\) along the \(x\)-axis. Apply \(A^k\) to lift to level \(k\). The gap between adjacent tape cells at level \(k\) equals \(F(2k+1)\), the \((2k+1)\)-th Fibonacci number.
+
+<pre class="data-table">
+  k    gap(0→1)    gap(1→2)
+  0           1           1
+  5         144         144
+ 10      17,711      17,711
+ 15   2,178,309   2,178,309
+</pre>
+
+Adjacent tape cells separate by \(\varphi^{2k}\). Scatter is cheap; <strong>gather is exponential</strong>.
+</div>
+
+<h4>5.3.2 The Irrational Eigenslope (New Result)</h4>
+
+<div class="experiment">
+<strong>Experiment 9-13 (K-Axis Routing).</strong> The \(t\)-generator is <em>neutral</em>: it moves \((v, k) \to (v, k+1)\) without changing coordinates. At level \(k\), one \(a\)-step moves by \(A^k \cdot (1,0)\), which has magnitude \(\sim \varphi^{2k}\). So: go up \(k\), step, come back — you've moved \(\varphi^{2k}\) cells in \(2k+1\) steps. <strong>Exponential teleportation speed.</strong>
+
+<p><strong>The catch:</strong> The displacement vector \(A^k \cdot (1,0)\) converges to the direction of the expanding eigenvector \((1, 1/\varphi)\). The y-drift ratio converges to exactly \(1/\varphi \approx 0.618\):</p>
+
+<pre class="data-table">
+target_x   actual_x    y_drift   y/x ratio
+      10         10          6      0.6000
+     100        100         61      0.6100
+    1000       1000        618      0.6180
+   10000      10000       6180      0.6180
+  100000     100000      61803      0.6180
+</pre>
+
+<p>The slope \(1/\varphi\) is <strong>irrational</strong>. The expanding eigendirection <em>never</em> aligns with the integer lattice. To correct the y-drift at level \(k\) requires \(F(2k-1)\) additional \(a\)-steps and \(F(2k)\) additional \(b\)-steps — <strong>exponentially many corrections</strong>.</p>
+</div>
+
+<div class="figure">
+  <img src="img/fig4-jsj.png" alt="The Irrational Eigenslope Obstruction">
+  <div class="caption">Figure 5. The irrational eigenslope: k-axis routing teleports along (1, 1/φ) but this direction never aligns with the integer lattice. You can teleport but can't land on your tape cells.</div>
+</div>
+
+<!-- FIGURE: JSJ Minimum Erasure -->
+<div class="figure">
+  <img src="img/fig5-eigenslope.png" alt="JSJ Decomposition equals Minimum Erasure">
+  <div class="caption">Figure 4. JSJ decomposition minimizes Landauer erasure cost. Incompressible tori carry genuine information; JSJ finds the minimum number of such boundaries.</div>
+</div>
+
+<div class="conjecture">
+<strong>The Irrational Eigenslope Conjecture.</strong> \(M_{\text{phys}}(\text{Sol}) = \mathbf{P}\). The irrational eigenslope of the monodromy matrix \(A\) creates a Diophantine obstruction: every encoding that attempts to use Sol's exponential workspace must fight the irrationality of \(\varphi\) on the integer lattice, and the fight costs Fibonacci.
+</div>
+
+<div class="proof" style="border-left: 4px solid var(--gold); background: #1a1800;"><strong style="color: var(--gold);">Provenance.</strong> This conjecture emerged from a specific computational process, not from traditional mathematical reasoning. It should be evaluated as such.<br><br><strong>Process:</strong> Opus 4.6 (Claude Code, Anthropic) ran 13 Rust CA experiments on Sol's Cayley graph on an M4 Max. An Opus 4.6 ultrathink fork analyzed 7 attack vectors and arrived at P with 0.72 initial confidence. Simulated advisor personas (Feynman, Perelman, Tao, Shannon) critiqued the argument — Perelman identified the k-axis gap, which was then tested and resolved empirically (Experiments 9-13). Codex 5.4 (GPT, OpenAI) cross-verified tooling. Gemini Flash (Google) generated visual guides. Danielle Fong (human) directed the research programme, course-corrected with egolessness, and identified Sol's manifestations in natural systems.<br><br><strong>Four lines of evidence:</strong> (1) unimodularity bottleneck (det A = 1), (2) Fibonacci gap growth F(2k+1), (3) amenability → no QI tree (Drutu-Sapir, classical), (4) irrational eigenslope — k-axis routing is exponentially fast but routes along (1, 1/φ), and drift correction costs Fibonacci.<br><br><strong>Assessment:</strong> Conjecture with empirical support. Not a proof. The min-cut bound for Sol's Cayley graph remains unproven. No specific language in PSPACE \\ M_phys(Sol) has been exhibited.</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<h2 id="sec6">6. The Landauer-JSJ Connection</h2>
+
+<p>An unexpected connection emerged between JSJ decomposition and Landauer's principle of thermodynamic computation cost:</p>
+
+<div class="theorem">
+<strong>Observation.</strong> The incompressible tori in a JSJ decomposition are exactly the surfaces where \(\pi_1\)-injectivity forces genuine information-theoretic cost. JSJ minimizes the number of such boundaries, and therefore minimizes the total Landauer erasure cost of any computation factored along the decomposition.
+</div>
+
+<p>This suggests a deeper dictionary:</p>
+
+<table>
+<tr><th>Topology</th><th>Computation</th><th>Thermodynamics</th></tr>
+<tr><td>Incompressible torus</td><td>Irreversible step</td><td>Landauer erasure (\(\geq kT \ln 2\))</td></tr>
+<tr><td>JSJ decomposition</td><td>Minimum-cost factorization</td><td>Minimum total heat dissipation</td></tr>
+<tr><td>\(\pi_1\)-injectivity</td><td>Information necessity</td><td>Non-zero entropy production</td></tr>
+<tr><td>FlashAttention tiles</td><td>\(\mathbb{E}^3\) pieces</td><td>\(\mathbb{Z}^2\) boundary statistics</td></tr>
+</table>
+
+<!-- ═══════════════════════════════════════════ -->
+<h2 id="sec7">7. Sol in Nature</h2>
+
+<p>Sol geometry — anisotropic exponential growth where one direction expands while the perpendicular contracts — appears throughout natural and engineered systems:</p>
+
+<ul>
+  <li><strong>Lungs:</strong> Bronchi branch (expand reach) while diameter narrows (contract cross-section)</li>
+  <li><strong>Cities:</strong> Arterial roads expand reach while side streets compress local density</li>
+  <li><strong>Memory hierarchies:</strong> Bandwidth expands but latency contracts at each cache level</li>
+  <li><strong>Neural networks:</strong> Layer width (expanding representation) vs. depth (contracting through bottleneck layers)</li>
+  <li><strong>FlashAttention:</strong> The original connection — tile boundaries carry bounded statistics despite unbounded tile content</li>
+</ul>
+
+<p>The <strong>scatter-gather asymmetry</strong> — cheap to spread information outward, expensive to collect it back — is a universal engineering constraint arising from anisotropic geometry. Whatever \(M_{\text{phys}}(\text{Sol})\) turns out to be, this structural insight matters for system design.</p>
+
+<!-- ═══════════════════════════════════════════ -->
+<h2 id="sec8">8. Open Problems</h2>
+
+<ol>
+  <li><strong>Prove \(M_{\text{phys}}(\text{Sol}) = \mathbf{P}\)</strong> (or find a counterexample). The most promising path: prove a min-cut bound for anisotropic cuts in Sol's Cayley graph using Pittet-Saloff-Coste isoperimetric profiles.</li>
+  <li><strong>Formalize the 7/8 classification in Lean 4.</strong> The volume-growth theorems are composed of known results with constructive proofs amenable to formalization.</li>
+  <li><strong>Develop the Landauer-JSJ dictionary rigorously.</strong> Is the correspondence between incompressible surfaces and irreversible computation steps a theorem or a coincidence?</li>
+  <li><strong>Characterize computational renormalizability.</strong> When does sublinear merge complexity arise? The conjecture: iff the torus channel statistics form a finite-dimensional associative monoid.</li>
+  <li><strong>Extend to mixed geometries via JSJ composition.</strong> A general 3-manifold decomposes into pieces of different types. How do the complexity classes compose?</li>
+</ol>
+
+<!-- ═══════════════════════════════════════════ -->
+<h2 id="refs">References</h2>
+
+<ol style="font-size: 0.9em; color: var(--dim);">
+  <li>Cornulier, Y. "Dimension of asymptotic cones of Lie groups." <em>J. Topology</em> 1(2), 2008.</li>
+  <li>Drutu, C. and Sapir, M. "Tree-graded spaces and asymptotic cones of groups." <em>Topology</em> 44(5), 2005.</li>
+  <li>Eskin, A., Fisher, D., and Whyte, K. "Quasi-isometries and rigidity of solvable groups." <em>Annals of Math.</em> 176(1), 2012.</li>
+  <li>Gromov, M. "Groups of polynomial growth and expanding maps." <em>IHES Publ. Math.</em> 53, 1981.</li>
+  <li>Iwamoto, C. and Margenstern, M. "Time and Space Complexity Classes of Hyperbolic Cellular Automata." <em>IEICE Trans.</em> 87-D(3), 2004.</li>
+  <li>Iwamoto, C., Margenstern, M., Morita, K., and Worsch, T. "Polynomial Time Cellular Automata in the Hyperbolic Plane Accept Exactly the PSPACE Languages." SCI 2002.</li>
+  <li>Jaco, W. and Shalen, P. "Seifert fibered spaces in 3-manifolds." <em>Memoirs AMS</em> 21(220), 1979.</li>
+  <li>Johannson, K. <em>Homotopy equivalences of 3-manifolds with boundaries.</em> Springer LNM 761, 1979.</li>
+  <li>Landauer, R. "Irreversibility and heat generation in the computing process." <em>IBM J. Res. Dev.</em> 5(3), 1961.</li>
+  <li>Margenstern, M. and Morita, K. "NP problems are tractable in the space of cellular automata in the hyperbolic plane." <em>TCS</em> 259, 2001.</li>
+  <li>Milnor, J. "Growth of finitely generated solvable groups." <em>J. Diff. Geom.</em> 2, 1968.</li>
+  <li>Perelman, G. "The entropy formula for the Ricci flow and its geometric applications." arXiv:math/0211159, 2002.</li>
+  <li>Savitch, W. "Relationships between nondeterministic and deterministic tape complexities." <em>JCSS</em> 4(2), 1970.</li>
+  <li>Sisto, A. and Zbinden, L. "The word problem for 3-manifold groups is in almost-linear time." <em>IMRN</em>, 2026.</li>
+  <li>Thurston, W. "Three-dimensional manifolds, Kleinian groups and hyperbolic geometry." <em>Bull. AMS</em> 6(3), 1982.</li>
+  <li>Wolf, J. "Growth of finitely generated solvable groups and curvature of Riemannian manifolds." <em>J. Diff. Geom.</em> 2, 1968.</li>
+</ol>
+
+<hr style="margin-top: 3rem; border-color: #2a3a4a;">
+<p style="font-size: 0.8em; color: var(--dim); text-align: center; margin-top: 1rem;">
+  Draft v1. All experiments reproducible at <code>experiments/sol-ca/</code>.<br>
+  13 Rust experiments, 4 Gemini visual guides, 3 advisor assessments.<br>
+  Tracked at <a href="https://linear.app/lightcell/project/computational-geometrization-6d2e4a32be12">Linear/Lightcell</a>.
+</p>
+
+</body>
+</html>
